@@ -6,6 +6,15 @@ import { AppContext } from "./state/context";
 import MapComponent from "./components/Map";
 import Papa, { parse } from "papaparse";
 import "./App.css";
+import RouteWidget from "./components/RouteWidget";
+
+const mapper = {
+  "rrl": "corr_rain",
+  "qsw": "corr_snowmelt",
+  "qtt": "corr_snowmelt_and_rain",
+  "tm": "corr_temp",
+  "rr": "corr_ppt"
+}
 
 
 function App() {
@@ -42,6 +51,7 @@ function App() {
   esriConfig.apiKey = "AAPK52519f141ec04565b33944a7da4bc90fnViwerekXzgz0Xmo2l0frkfDum-JLaO1qlOfNgp6QFA4tUSOS_ZEur7zjsuqLFJu";
   const [mapView, setMapView] = useState(null);
   const [featureLayer, setFeatureLayer] = useState(null);
+  const [selectedMeasure, setSelectedMeasure] = useState("qsw");
   const [point, setPoint] = useState({
     type: "point",
     latitude: 63.4305,
@@ -59,7 +69,14 @@ function App() {
   return (
     <AppContext.Provider value={store}>
       <div style={{ height: "100%", width: "100%" }}>
-        <MapComponent polygons={polyData} />
+        <MapComponent 
+          polygons={polyData} 
+          selected={mapper[selectedMeasure]}
+        />
+        <RouteWidget 
+          handleChange={(e) => (setSelectedMeasure(e.target.value))}
+          selected={selectedMeasure}
+        />
       </div>
     </AppContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext } from "react";
+import React, { useRef, useEffect, useContext, useState } from "react";
 
 import esriConfig from "@arcgis/core/config.js";
 import MapView from "@arcgis/core/views/MapView";
@@ -20,9 +20,13 @@ const colors = {
   2: [216,254,255, 0.4],
   1: [200,247,128, 0.4],
 }
+      const map = new Map({
+        basemap: "topo-vector",
+      });
 
 const MapComponent = (props) => {
   const context = useContext(AppContext);
+  const [graphicsLayer, setGraphicsLayer] = useState();
   // Required: Set this property to insure assets resolve correctly.
   esriConfig.assetsPath = "./assets";
   const mapDiv = useRef(null);
@@ -34,87 +38,7 @@ const MapComponent = (props) => {
       // Konstruktøren er allerede i koden, men vi må velge bakgrunnskartet
       // En liste med valg inner vi i API dokumentasjonen:
       // https://developers.arcgis.com/javascript/latest/api-reference/esri-Map.html#basemap
-      const map = new Map({
-        basemap: "topo-vector",
-      });
 
-      const polygonInformation = props.polygons
-
-      const graphicsLayer = new GraphicsLayer();
-      map.add(graphicsLayer);
-
-
-      const simpleFillSymbol = {
-          type: "simple-fill",
-          color: [227, 139, 79, 0],  // Orange, opacity 80%
-          outline: {
-              color: [255, 255, 255],
-              width: 0
-          }
-      };
-      
-      for(let row = 0; row < polygonInformation.length -10; row++) {
-          // Create a polygon geometry
-          const lat = parseFloat(polygonInformation[row]["lat"])
-          const lon = parseFloat(polygonInformation[row]["lng"])
-          
-          const next_lat = parseFloat(polygonInformation[row+1]["lat"])
-          const next_lon = parseFloat(polygonInformation[row+1]["lng"])
-
-          
-          const correlation = parseFloat(polygonInformation[row]["corr_hamsil2"])
-          const square_size_x = parseFloat(polygonInformation[row]["sizeX"])
-          const square_size_Y = parseFloat(polygonInformation[row]["sizeY"])
-
-          const deltaX = lon-next_lon
-
-          if(deltaX > square_size_x*2) {
-            continue
-          }
-
-          console.log("Lat:", lat, "Lng:", lon, "next_Lat:", next_lat, "next_Lng:", next_lon)
-          const polygon = {
-              type: "polygon",
-              rings: [
-                  [lon + square_size_x + (next_lat-lat)*2, lat + (next_lat-lat) ], //Longitude, latitude //Top left
-                  [lon, lat], //Longitude, latitude //Bottom Left
-                  [lon, lat + square_size_Y - (next_lat-lat)], //Longitude, latitude //Top right
-                  [lon + square_size_x + (next_lat-lat) + (next_lat-lat)*2, lat + square_size_Y] //Longitude, latitude // Bottom right
-              ]
-          };
-
-
-          if(correlation < 0) {
-            simpleFillSymbol.color = [0,0,0, 0.0]
-          }
-          else if(correlation <= 0.2 && correlation > 0) {
-            simpleFillSymbol.color = colors[1]
-          }
-          else if(correlation <= 0.45 && correlation > 0.2) {
-            simpleFillSymbol.color = colors[2]
-          }
-          else if(correlation <= 0.55 && correlation > 0.45) {
-            simpleFillSymbol.color = colors[3]
-          }
-          else if(correlation <= 0.66 && correlation > 0.55) {
-            simpleFillSymbol.color = colors[4]
-          }
-          else if(correlation <= 0.85 && correlation > 0.66) {
-            simpleFillSymbol.color = colors[7]
-          }
-          else if(correlation <= 0.95 && correlation > 0.85) {
-            simpleFillSymbol.color = colors[6]
-          }
-          else if(correlation <= 1 && correlation > 0.95) {
-            simpleFillSymbol.color = colors[7]
-          }
-
-          const polygonGraphic = new Graphic({
-              geometry: polygon,
-              symbol: simpleFillSymbol,
-          });
-          graphicsLayer.add(polygonGraphic);
-      }
 
 
       // Legg til dataen i kartet
@@ -130,10 +54,10 @@ const MapComponent = (props) => {
         map: map,
         container: mapDiv.current,
         extent: {
-          ymin: 60.8005086, 
-          xmin: 8.27232981,
-          ymax: 60.863289, 
-          xmax: 8.433792,
+          ymin: 60.274264, 
+          xmin: 7.878348,
+          ymax: 61.700, 
+          xmax: 9.356222,
         },
       }).when((mapView) => {
         // Esri har mange widgets som er enkle å legge til i kartet
@@ -188,7 +112,87 @@ const MapComponent = (props) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.polygons]);
+  }, []);
+
+  useEffect(() => {
+      const polygonInformation = props.polygons
+      
+      const graphicsLayerTmp = new GraphicsLayer();
+      map.removeAll()
+      setGraphicsLayer(graphicsLayerTmp)
+      map.add(graphicsLayer);
+      
+      const simpleFillSymbol = {
+          type: "simple-fill",
+          color: [227, 139, 79, 0],  // Orange, opacity 80%
+          outline: {
+              color: [255, 255, 255],
+              width: 0
+          }
+      };
+
+      for(let row = 0; row < polygonInformation.length-2; row++) {
+          // Create a polygon geometry
+          const lat = parseFloat(polygonInformation[row]["lat"])
+          const lon = parseFloat(polygonInformation[row]["lng"])
+          
+          const next_lat = parseFloat(polygonInformation[row+1]["lat"])
+          const next_lon = parseFloat(polygonInformation[row+1]["lng"])
+
+          
+          const correlation = parseFloat(polygonInformation[row][props.selected])
+          const square_size_x = parseFloat(polygonInformation[row]["sizeX"])
+          const square_size_Y = parseFloat(polygonInformation[row]["sizeY"])
+
+          const deltaX = lon-next_lon
+
+          if(deltaX > square_size_x*2) {
+            continue
+          }
+
+          const polygon = {
+              type: "polygon",
+              rings: [
+                  [lon + square_size_x + (next_lat-lat)*2, lat + (next_lat-lat) ], //Longitude, latitude //Top left
+                  [lon, lat], //Longitude, latitude //Bottom Left
+                  [lon, lat + square_size_Y - (next_lat-lat)], //Longitude, latitude //Top right
+                  [lon + square_size_x + (next_lat-lat) + (next_lat-lat)*2, lat + square_size_Y] //Longitude, latitude // Bottom right
+              ]
+          };
+
+
+          if(correlation < 0) {
+            simpleFillSymbol.color = [0,0,0, 0.0]
+          }
+          else if(correlation <= 0.2 && correlation > 0) {
+            simpleFillSymbol.color = colors[1]
+          }
+          else if(correlation <= 0.45 && correlation > 0.2) {
+            simpleFillSymbol.color = colors[2]
+          }
+          else if(correlation <= 0.55 && correlation > 0.45) {
+            simpleFillSymbol.color = colors[3]
+          }
+          else if(correlation <= 0.66 && correlation > 0.55) {
+            simpleFillSymbol.color = colors[4]
+          }
+          else if(correlation <= 0.85 && correlation > 0.66) {
+            simpleFillSymbol.color = colors[7]
+          }
+          else if(correlation <= 0.95 && correlation > 0.85) {
+            simpleFillSymbol.color = colors[6]
+          }
+          else if(correlation <= 1 && correlation > 0.95) {
+            simpleFillSymbol.color = colors[7]
+          }
+
+          const polygonGraphic = new Graphic({
+              geometry: polygon,
+              symbol: simpleFillSymbol,
+          });
+          graphicsLayer.add(polygonGraphic);
+      }
+  }, [props.selected, props.polygons])
 
   useEffect(() => {
     if (context.mapView.value) {
