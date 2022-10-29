@@ -13,7 +13,8 @@ const mapper = {
   "qsw": "corr_snowmelt",
   "qtt": "corr_snowmelt_and_rain",
   "tm": "corr_temp",
-  "rr": "corr_ppt"
+  "rr": "corr_ppt",
+  "gwb_gwt": "corr_soilwater"
 }
 
 
