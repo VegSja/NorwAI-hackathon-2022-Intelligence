@@ -1,13 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import esriConfig from '@arcgis/core/config.js';
 
 import { AppContext } from "./state/context";
 import MapComponent from "./components/Map";
-import RouteWidget from "./components/RouteWidget";
+import Papa, { parse } from "papaparse";
 import "./App.css";
 
+
 function App() {
+  const [polyData, setPolyData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch('http://127.0.0.1:3001/points.csv', {
+      headers : { 
+        'content-type': 'text/csv;charset=UTF-8'
+        }
+      })
+      .catch(function() {
+        console.log("error");
+      }); 
+    
+
+    const data = await response.text();
+
+    const csv = Papa.parse(data, { header: true });
+    const parsedData = csv?.data;
+    const columns = Object.keys(parsedData[0]);
+    setPolyData(parsedData);
+    }
+
+    fetchData()
+      .catch(console.error)
+
+  }, []) 
+
+
+
   // Opprett store som sendes rundt til ulike komponenter
   esriConfig.apiKey = "AAPK52519f141ec04565b33944a7da4bc90fnViwerekXzgz0Xmo2l0frkfDum-JLaO1qlOfNgp6QFA4tUSOS_ZEur7zjsuqLFJu";
   const [mapView, setMapView] = useState(null);
@@ -24,11 +54,12 @@ function App() {
     point: { value: point, set: setPoint },
   }
 
+  console.log(polyData)
+
   return (
     <AppContext.Provider value={store}>
       <div style={{ height: "100%", width: "100%" }}>
-        <MapComponent />
-        <RouteWidget />
+        <MapComponent polygons={polyData} />
       </div>
     </AppContext.Provider>
   );

@@ -5,12 +5,13 @@ import MapView from "@arcgis/core/views/MapView";
 import Map from "@arcgis/core/Map";
 import Locate from "@arcgis/core/widgets/Locate";
 import Graphic from "@arcgis/core/Graphic";
-import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 
 import { AppContext } from "../state/context";
 import "../App.css";
 
-const MapComponent = () => {
+
+const MapComponent = (props) => {
   const context = useContext(AppContext);
   // Required: Set this property to insure assets resolve correctly.
   esriConfig.assetsPath = "./assets";
@@ -27,25 +28,54 @@ const MapComponent = () => {
         basemap: "topo-vector",
       });
 
-      // Hent dataen
-      const featureLayer = new FeatureLayer({
-        url: "https://services-eu1.arcgis.com/zci5bUiJ8olAal7N/arcgis/rest/services/OSM_Tourism_EU/FeatureServer/0",
-        popupEnabled: true,
-        popupTemplate: {
-          title: "{name}",
-          content: [{
-            type: "text",
-            text: `<p>Type: {tourism}</p>
-<p>{description}</p>`
-          }]
-        }
-      });
+      let square_size = 0.03649729207*3/4
+
+      let polygon_positions = []
+
+      for(let i=0; i < props.polygons.length; i++) {
+        polygon_positions.push([parseFloat(props.polygons[i]["x"]), parseFloat(props.polygons[i]["y"])])
+      }
+
+
+      const graphicsLayer = new GraphicsLayer();
+      map.add(graphicsLayer);
+
+
+      const simpleFillSymbol = {
+          type: "simple-fill",
+          color: [227, 139, 79, 0.8],  // Orange, opacity 80%
+          outline: {
+              color: [255, 255, 255],
+              width: 0
+          }
+      };
+      
+      for(let row = 0; row < polygon_positions.length ; row++) {
+          // Create a polygon geometry
+          console.log("looking into", polygon_positions[row])
+          const polygon = {
+              type: "polygon",
+              rings: [
+                  [polygon_positions[row][0] + square_size, polygon_positions[row][1]], //Longitude, latitude
+                  [polygon_positions[row][0], polygon_positions[row][1]], //Longitude, latitude
+                  [polygon_positions[row][0], polygon_positions[row][1] + square_size/2], //Longitude, latitude
+                  [polygon_positions[row][0] + square_size, polygon_positions[row][1] + square_size/2] //Longitude, latitude
+              ]
+          };
+
+          const polygonGraphic = new Graphic({
+              geometry: polygon,
+              symbol: simpleFillSymbol,
+          });
+          graphicsLayer.add(polygonGraphic);
+      }
+
 
       // Legg til dataen i kartet
-      map.add(featureLayer);
+      //map.add(featureLayer);
 
       // Legg til dataen i context
-      context.featureLayer.set(featureLayer);
+      //context.featureLayer.set(featureLayer);
 
       // For å kunne vise kartet må dette legges til i et MapView
       // Dokumentasjonen for MapView finnes her:
@@ -112,7 +142,8 @@ const MapComponent = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.polygons]);
+
   useEffect(() => {
     if (context.mapView.value) {
       const mapView = context.mapView.value;
