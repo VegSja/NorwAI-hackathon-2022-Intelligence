@@ -27,7 +27,7 @@ function App() {
 
     const csv = Papa.parse(data, { header: true });
     const parsedData = csv?.data;
-    const columns = Object.keys(parsedData[0]);
+
     setPolyData(parsedData);
     }
 

@@ -11,6 +11,13 @@ import { AppContext } from "../state/context";
 import "../App.css";
 
 
+const colors = {
+  low: [102, 255, 102, 0.8],
+  medium: [227, 139, 79, 0.8],
+  high: [255, 0, 0, 0.8]
+
+}
+
 const MapComponent = (props) => {
   const context = useContext(AppContext);
   // Required: Set this property to insure assets resolve correctly.
@@ -62,6 +69,20 @@ const MapComponent = (props) => {
                   [polygon_positions[row][0] + square_size, polygon_positions[row][1] + square_size/2] //Longitude, latitude
               ]
           };
+
+          const correlation = props.polygons["correlation"] 
+
+          if(correlation < 0.33 && correlation > 0) {
+            simpleFillSymbol.color = colors.low
+          }
+          else if(correlation < 0.66 && correlation > 0.33) {
+            simpleFillSymbol.color = colors.medium
+          }
+          else if(correlation < 1 && correlation > 0.66) {
+            simpleFillSymbol.color = colors.high
+          }
+
+          console.log(simpleFillSymbol)
 
           const polygonGraphic = new Graphic({
               geometry: polygon,
