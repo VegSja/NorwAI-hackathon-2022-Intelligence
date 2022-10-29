@@ -13,7 +13,7 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://127.0.0.1:3001/points.csv', {
+      const response = await fetch('http://127.0.0.1:3001/correlations.csv', {
       headers : { 
         'content-type': 'text/csv;charset=UTF-8'
         }

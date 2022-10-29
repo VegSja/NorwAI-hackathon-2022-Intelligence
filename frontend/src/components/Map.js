@@ -12,10 +12,13 @@ import "../App.css";
 
 
 const colors = {
-  low: [102, 255, 102, 0.8],
-  medium: [227, 139, 79, 0.8],
-  high: [255, 0, 0, 0.8]
-
+  7: [28,0,153, 0.4],
+  6: [53,1,255, 0.4],
+  5: [42,146,254, 0.4],
+  4: [70,202,254, 0.4],
+  3: [131,232,251, 0.4],
+  2: [216,254,255, 0.4],
+  1: [200,247,128, 0.4],
 }
 
 const MapComponent = (props) => {
@@ -35,14 +38,7 @@ const MapComponent = (props) => {
         basemap: "topo-vector",
       });
 
-      let square_size = 0.03649729207*3/4
-
-      let polygon_positions = []
-
-      for(let i=0; i < props.polygons.length; i++) {
-        polygon_positions.push([parseFloat(props.polygons[i]["x"]), parseFloat(props.polygons[i]["y"])])
-      }
-
+      const polygonInformation = props.polygons
 
       const graphicsLayer = new GraphicsLayer();
       map.add(graphicsLayer);
@@ -50,39 +46,68 @@ const MapComponent = (props) => {
 
       const simpleFillSymbol = {
           type: "simple-fill",
-          color: [227, 139, 79, 0.8],  // Orange, opacity 80%
+          color: [227, 139, 79, 0],  // Orange, opacity 80%
           outline: {
               color: [255, 255, 255],
               width: 0
           }
       };
       
-      for(let row = 0; row < polygon_positions.length ; row++) {
+      for(let row = 0; row < polygonInformation.length -10; row++) {
           // Create a polygon geometry
-          console.log("looking into", polygon_positions[row])
+          const lat = parseFloat(polygonInformation[row]["lat"])
+          const lon = parseFloat(polygonInformation[row]["lng"])
+          
+          const next_lat = parseFloat(polygonInformation[row+1]["lat"])
+          const next_lon = parseFloat(polygonInformation[row+1]["lng"])
+
+          
+          const correlation = parseFloat(polygonInformation[row]["corr_hamsil2"])
+          const square_size_x = parseFloat(polygonInformation[row]["sizeX"])
+          const square_size_Y = parseFloat(polygonInformation[row]["sizeY"])
+
+          const deltaX = lon-next_lon
+
+          if(deltaX > square_size_x*2) {
+            continue
+          }
+
+          console.log("Lat:", lat, "Lng:", lon, "next_Lat:", next_lat, "next_Lng:", next_lon)
           const polygon = {
               type: "polygon",
               rings: [
-                  [polygon_positions[row][0] + square_size, polygon_positions[row][1]], //Longitude, latitude
-                  [polygon_positions[row][0], polygon_positions[row][1]], //Longitude, latitude
-                  [polygon_positions[row][0], polygon_positions[row][1] + square_size/2], //Longitude, latitude
-                  [polygon_positions[row][0] + square_size, polygon_positions[row][1] + square_size/2] //Longitude, latitude
+                  [lon + square_size_x + (next_lat-lat)*2, lat + (next_lat-lat) ], //Longitude, latitude //Top left
+                  [lon, lat], //Longitude, latitude //Bottom Left
+                  [lon, lat + square_size_Y - (next_lat-lat)], //Longitude, latitude //Top right
+                  [lon + square_size_x + (next_lat-lat) + (next_lat-lat)*2, lat + square_size_Y] //Longitude, latitude // Bottom right
               ]
           };
 
-          const correlation = props.polygons["correlation"] 
 
-          if(correlation < 0.33 && correlation > 0) {
-            simpleFillSymbol.color = colors.low
+          if(correlation < 0) {
+            simpleFillSymbol.color = [0,0,0, 0.0]
           }
-          else if(correlation < 0.66 && correlation > 0.33) {
-            simpleFillSymbol.color = colors.medium
+          else if(correlation <= 0.2 && correlation > 0) {
+            simpleFillSymbol.color = colors[1]
           }
-          else if(correlation < 1 && correlation > 0.66) {
-            simpleFillSymbol.color = colors.high
+          else if(correlation <= 0.45 && correlation > 0.2) {
+            simpleFillSymbol.color = colors[2]
           }
-
-          console.log(simpleFillSymbol)
+          else if(correlation <= 0.55 && correlation > 0.45) {
+            simpleFillSymbol.color = colors[3]
+          }
+          else if(correlation <= 0.66 && correlation > 0.55) {
+            simpleFillSymbol.color = colors[4]
+          }
+          else if(correlation <= 0.85 && correlation > 0.66) {
+            simpleFillSymbol.color = colors[7]
+          }
+          else if(correlation <= 0.95 && correlation > 0.85) {
+            simpleFillSymbol.color = colors[6]
+          }
+          else if(correlation <= 1 && correlation > 0.95) {
+            simpleFillSymbol.color = colors[7]
+          }
 
           const polygonGraphic = new Graphic({
               geometry: polygon,
