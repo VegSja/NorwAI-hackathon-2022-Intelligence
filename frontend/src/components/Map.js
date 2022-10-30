@@ -167,22 +167,16 @@ const MapComponent = (props) => {
           else if(correlation <= 0.2 && correlation > 0) {
             simpleFillSymbol.color = colors[1]
           }
-          else if(correlation <= 0.45 && correlation > 0.2) {
+          else if(correlation <= 0.35 && correlation > 0.2) {
             simpleFillSymbol.color = colors[2]
           }
-          else if(correlation <= 0.55 && correlation > 0.45) {
+          else if(correlation <= 0.55 && correlation > 0.35) {
             simpleFillSymbol.color = colors[3]
           }
-          else if(correlation <= 0.66 && correlation > 0.55) {
+          else if(correlation <= 0.7 && correlation > 0.55) {
             simpleFillSymbol.color = colors[4]
           }
-          else if(correlation <= 0.85 && correlation > 0.66) {
-            simpleFillSymbol.color = colors[7]
-          }
-          else if(correlation <= 0.95 && correlation > 0.85) {
-            simpleFillSymbol.color = colors[6]
-          }
-          else if(correlation <= 1 && correlation > 0.95) {
+          else if(correlation <= 1 && correlation > 0.7) {
             simpleFillSymbol.color = colors[7]
           }
 

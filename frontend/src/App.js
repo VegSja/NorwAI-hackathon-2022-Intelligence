@@ -7,6 +7,7 @@ import MapComponent from "./components/Map";
 import Papa, { parse } from "papaparse";
 import "./App.css";
 import RouteWidget from "./components/RouteWidget";
+import Legend from "./components/Legend";
 
 const mapper = {
   "rrl": "corr_rain",
@@ -78,6 +79,7 @@ function App() {
           handleChange={(e) => (setSelectedMeasure(e.target.value))}
           selected={selectedMeasure}
         />
+        <Legend />
       </div>
     </AppContext.Provider>
   );

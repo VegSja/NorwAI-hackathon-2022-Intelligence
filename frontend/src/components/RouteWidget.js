@@ -7,14 +7,13 @@ const RouteWidget = (props) => {
 
   return (
     <div className={"widgetContainer"}>
-      What do you want to see?
       <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Age</InputLabel>
+        <InputLabel id="demo-simple-select-label">Feature</InputLabel>
         <Select
           labelId="demo-simple-select-label"
           id="demo-simple-select"
           value={props.selected}
-          label="Age"
+          label="Feature"
           onChange={(e) => props.handleChange(e)}
         >
           <MenuItem value={"rrl"}>Rain</MenuItem>
@@ -22,6 +21,7 @@ const RouteWidget = (props) => {
           <MenuItem value={"qtt"}>Snowmelt and rain</MenuItem>
           <MenuItem value={"tm"}>Temperature</MenuItem>
           <MenuItem value={"rr"}>Percepitation</MenuItem>
+          <MenuItem value={"gwb_gwt"}>Soil water</MenuItem>
         </Select>
       </FormControl>
     </div>
