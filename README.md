@@ -1,3 +1,7 @@
+**Group**: Intelligence
+**Track**: 2 - Innovation
+
+
 # About the delivery
 The product consists of three parts:
 - backend
